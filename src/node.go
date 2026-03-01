@@ -343,7 +343,11 @@ type Node_HasHitFlag struct{}
 type Node_CanEquipToEquipmentSlot struct{}
 
 // EA9343A22E819927
-type Node_ChooseByCondition struct{}
+type Node_ChooseByCondition struct {
+	condition Node
+	trueNode  Node
+	falseNode Node
+}
 
 // 3733EAFEDB939828
 type Node_Enum struct{}
@@ -379,7 +383,9 @@ type Node_GetContextActionFromBlackboard struct{}
 type Node_GetWolfSledInertia struct{}
 
 // E2A49D74E9AF732B
-type Node_AsConcussion struct{}
+type Node_AsConcussion struct {
+	param Node
+}
 
 // 7A2E56CF1416602D
 type Node_IsPlatform struct{}
@@ -1069,7 +1075,9 @@ type Node_IsJumping struct{}
 type Node_IsWolfSledSpawned struct{}
 
 // 886AC326F68F9082
-type Node_AsVector struct{}
+type Node_AsVector struct {
+	param Node
+}
 
 // B7BEE12B6609C681
 type Node_GetFirstEquippableEquipmentSlot struct{}
@@ -1125,7 +1133,9 @@ type Node_IsModelEnabled struct{}
 type Node_GetOptionJoysticForSetting struct{}
 
 // 313283CDD133948A
-type Node_GetPickupStage struct{}
+type Node_GetPickupStage struct {
+	params [3]Node
+}
 
 // 0D82A05038A2148E
 type Node_GetWolfSledIsInDrift struct{}
@@ -1443,7 +1453,9 @@ type Node_GetRecipesInWalletWithFlags struct{}
 type Node_AsBehaviorTreeRoot struct{}
 
 // 93E78A7B43A101B6
-type Node_GetArrayLength struct{}
+type Node_GetArrayLength struct {
+	param Node
+}
 
 // 4032A55A4D21EEB6
 type Node_DoesCreatureHaveLookAtTarget struct{}
@@ -1843,7 +1855,9 @@ type Node_GetValuesFromStageData struct{}
 type Node_Arrow struct{}
 
 // A0CED481D2A9D6EA
-type Node_AsVector4 struct{}
+type Node_AsVector4 struct {
+	param Node
+}
 
 // F6CF4842280431EC
 type Node_GetFlawlessZeusAvailable struct{}
@@ -1961,7 +1975,12 @@ type Node_GetMeterValue struct{}
 type Node_AsLootConditionSet struct{}
 
 // 63A1BB2AE5B8DFFB
-type Node_Concussion struct{}
+type Node_Concussion struct {
+	name          string
+	nameHash      uint64
+	namespace     string
+	namespaceHash uint64
+}
 
 // 630D325A8182DFFC
 type Node_GetQuestPrimaryCompletionFact struct{}
@@ -2023,7 +2042,10 @@ type Node_SetDisableAllInteracts struct{}
 type Node_AddExcludeTraverseLinkFilterToCreature struct{}
 
 // C96987A11B93A400
-type Node_PlayCombatConcussion struct{}
+type Node_PlayCombatConcussion struct {
+	params [7]Node
+	next   Node
+}
 
 // DE783CC0462E3901
 type Node_SetHapticInstanceParameter struct{}
@@ -2188,7 +2210,11 @@ type Node_TransferWalletContents struct{}
 type Node_SetVFSBool struct{}
 
 // 538FCED6126B4816
-type Node_Switch struct{}
+type Node_Switch struct {
+	param      Node
+	cases      []Node
+	caseValues []Node
+}
 
 // 5C715BBAFD107416
 type Node_DebugHighlightObject struct{}
@@ -2576,7 +2602,13 @@ type Node_CreateVFSBool struct{}
 type Node_DEBUG_ONLY_SetQuestStateAndBackpropagate struct{}
 
 // E31E6CFA256BB13F
-type Node_For struct{}
+type Node_For struct {
+	start     Node
+	end       Node
+	increment Node
+	operation Node
+	next      Node
+}
 
 // 943DEDD1D9244240
 type Node_ModifyFocalZoneLockInEnabled struct{}
@@ -3565,7 +3597,10 @@ type Node_SetCameraTargetEnabled struct{}
 type Node_SendLuaHook struct{}
 
 // A42E1444D1908DAF
-type Node_GetArrayElement struct{}
+type Node_GetArrayElement struct {
+	params [2]Node
+	next   Node
+}
 
 // 89BE5980598A09AD
 type Node_RemoveCreatureFromCustomSplineGroup struct{}
@@ -5236,7 +5271,7 @@ func (n Node_CanEquipToEquipmentSlot) To_String() string {
 }
 
 func (n Node_ChooseByCondition) To_String() string {
-	return "ChooseByCondition()"
+	return fmt.Sprintf("ChooseByCondition(%s,%s,%s)", n.condition.To_String(), n.trueNode.To_String(), n.falseNode.To_String())
 }
 
 func (n Node_Enum) To_String() string {
@@ -5284,7 +5319,7 @@ func (n Node_GetWolfSledInertia) To_String() string {
 }
 
 func (n Node_AsConcussion) To_String() string {
-	return "AsConcussion()"
+	return fmt.Sprintf("AsConcussion(%s)", n.param.To_String())
 }
 
 func (n Node_IsPlatform) To_String() string {
@@ -5988,7 +6023,7 @@ func (n Node_Pickup) To_String() string {
 }
 
 func (n Node_Vector) To_String() string {
-	return "Vector()"
+	return fmt.Sprintf("Vector(%f,%f,%f)", n.x, n.y, n.z)
 }
 
 func (n Node_AsRumble) To_String() string {
@@ -6148,7 +6183,7 @@ func (n Node_IsWolfSledSpawned) To_String() string {
 }
 
 func (n Node_AsVector) To_String() string {
-	return "AsVector()"
+	return fmt.Sprintf("AsVector(%s)", n.param.To_String())
 }
 
 func (n Node_GetFirstEquippableEquipmentSlot) To_String() string {
@@ -6220,7 +6255,7 @@ func (n Node_GetOptionJoysticForSetting) To_String() string {
 }
 
 func (n Node_GetPickupStage) To_String() string {
-	return "GetPickupStage()"
+	return fmt.Sprintf("Node_GetPickupStage(%s,%s,%s)", n.params[0].To_String(), n.params[1].To_String(), n.params[2].To_String())
 }
 
 func (n Node_GetWolfSledIsInDrift) To_String() string {
@@ -6624,7 +6659,7 @@ func (n Node_AsBehaviorTreeRoot) To_String() string {
 }
 
 func (n Node_GetArrayLength) To_String() string {
-	return "GetArrayLength()"
+	return fmt.Sprintf("GetArrayLength(%s)", n.param.To_String())
 }
 
 func (n Node_DoesCreatureHaveLookAtTarget) To_String() string {
@@ -7146,7 +7181,7 @@ func (n Node_Arrow) To_String() string {
 }
 
 func (n Node_AsVector4) To_String() string {
-	return "AsVector4()"
+	return fmt.Sprintf("AsVector4(%s)", n.param.To_String())
 }
 
 func (n Node_GetFlawlessZeusAvailable) To_String() string {
@@ -7298,7 +7333,7 @@ func (n Node_AsLootConditionSet) To_String() string {
 }
 
 func (n Node_Concussion) To_String() string {
-	return "Concussion()"
+	return fmt.Sprintf("Concussion(\"%s.%s\",%X,%X)", n.namespace, n.name, n.namespaceHash, n.nameHash)
 }
 
 func (n Node_GetQuestPrimaryCompletionFact) To_String() string {
@@ -7378,7 +7413,10 @@ func (n Node_AddExcludeTraverseLinkFilterToCreature) To_String() string {
 }
 
 func (n Node_PlayCombatConcussion) To_String() string {
-	return "PlayCombatConcussion()"
+	if n.next != nil {
+		return fmt.Sprintf("PlayCombatConcussion(%s,%s,%s,%s,%s,%s,%s);%s", n.params[0].To_String(), n.params[1].To_String(), n.params[2].To_String(), n.params[3].To_String(), n.params[4].To_String(), n.params[5].To_String(), n.params[6].To_String(), n.next.To_String())
+	}
+	return fmt.Sprintf("PlayCombatConcussion(%s,%s,%s,%s,%s,%s,%s)", n.params[0].To_String(), n.params[1].To_String(), n.params[2].To_String(), n.params[3].To_String(), n.params[4].To_String(), n.params[5].To_String(), n.params[6].To_String())
 }
 
 func (n Node_SetHapticInstanceParameter) To_String() string {
@@ -7598,7 +7636,11 @@ func (n Node_SetVFSBool) To_String() string {
 }
 
 func (n Node_Switch) To_String() string {
-	return "Switch()"
+	cases := ""
+	for i, c := range n.cases {
+		cases = cases + fmt.Sprintf("\nCase %s: %s;", c.To_String(), n.caseValues[i].To_String())
+	}
+	return fmt.Sprintf("Switch(%s){%s\n}", n.param.To_String(), cases)
 }
 
 func (n Node_DebugHighlightObject) To_String() string {
@@ -8119,7 +8161,10 @@ func (n Node_DEBUG_ONLY_SetQuestStateAndBackpropagate) To_String() string {
 }
 
 func (n Node_For) To_String() string {
-	return "For()"
+	if n.next != nil {
+		return fmt.Sprintf("For(start = %s, end = %s, increment = %s, operation = function(itr){%s});%s", n.start.To_String(), n.end.To_String(), n.increment.To_String(), n.operation.To_String(), n.next.To_String())
+	}
+	return fmt.Sprintf("For(start = %s, end = %s, increment = %s, operation = function(itr){%s})", n.start.To_String(), n.end.To_String(), n.increment.To_String(), n.operation.To_String())
 }
 
 func (n Node_ModifyFocalZoneLockInEnabled) To_String() string {
@@ -9423,7 +9468,10 @@ func (n Node_SendLuaHook) To_String() string {
 }
 
 func (n Node_GetArrayElement) To_String() string {
-	return "GetArrayElement()"
+	if n.next != nil {
+		return fmt.Sprintf("GetArrayElement(%s,%s);%s", n.params[0].To_String(), n.params[1].To_String(), n.next.To_String())
+	}
+	return fmt.Sprintf("GetArrayElement(%s,%s)", n.params[0].To_String(), n.params[1].To_String())
 }
 
 func (n Node_RemoveCreatureFromCustomSplineGroup) To_String() string {
@@ -11530,7 +11578,20 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x67CF4AEA90A29126:
 		return &Node_CanEquipToEquipmentSlot{}, nil
 	case 0xEA9343A22E819927:
-		return &Node_ChooseByCondition{}, nil
+		n := &Node_ChooseByCondition{}
+		n.condition, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		n.trueNode, err = ReadNode(file, stack, offset+0x14)
+		if err != nil {
+			return nil, err
+		}
+		n.falseNode, err = ReadNode(file, stack, offset+0x18)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x3733EAFEDB939828:
 		return &Node_Enum{}, nil
 	case 0xB3ECE0E6AA649E28:
@@ -11554,7 +11615,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xF365BC694CD33C2B:
 		return &Node_GetWolfSledInertia{}, nil
 	case 0xE2A49D74E9AF732B:
-		return &Node_AsConcussion{}, nil
+		n := &Node_AsConcussion{}
+		n.param, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x7A2E56CF1416602D:
 		return &Node_IsPlatform{}, nil
 	case 0xD24FAD9AC019C32B:
@@ -11728,18 +11794,7 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 		return &Node_GetMotionDebuggerRecordLocation{}, nil
 	case 0x3F19FD355521B249:
 		n := &Node_GetVariable{}
-		_, err := file.Seek(int64(offset+0x10), 0)
-		if err != nil {
-			return nil, err
-		}
-		variableOffset := int64(0)
-		err = binary.Read(file, binary.LittleEndian, &variableOffset)
-		if err != nil {
-			return nil, err
-		}
-		if variableOffset>>0x3e == 1 {
-			variableOffset = (variableOffset << 1) / 2
-		}
+		variableOffset, err := ReadVariableOffset(file, int64(offset+0x10))
 		_, err = file.Seek(int64(offset+0x10)+variableOffset, 0)
 		if err != nil {
 			return nil, err
@@ -12232,7 +12287,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xD17577A116198381:
 		return &Node_IsWolfSledSpawned{}, nil
 	case 0x886AC326F68F9082:
-		return &Node_AsVector{}, nil
+		n := &Node_AsVector{}
+		n.param, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0xB7BEE12B6609C681:
 		return &Node_GetFirstEquippableEquipmentSlot{}, nil
 	case 0x4DA747B96E332782:
@@ -12273,7 +12333,20 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xEC7E4E1F46C54289:
 		return &Node_GetOptionJoysticForSetting{}, nil
 	case 0x313283CDD133948A:
-		return &Node_GetPickupStage{}, nil
+		n := &Node_GetPickupStage{}
+		n.params[0], err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x14)
+		if err != nil {
+			return nil, err
+		}
+		n.params[2], err = ReadNode(file, stack, offset+0x18)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x0D82A05038A2148E:
 		return &Node_GetWolfSledIsInDrift{}, nil
 	case 0x6871ED3EF297578B:
@@ -12568,7 +12641,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xAD349BD0B7555FB5:
 		return &Node_AsBehaviorTreeRoot{}, nil
 	case 0x93E78A7B43A101B6:
-		return &Node_GetArrayLength{}, nil
+		n := &Node_GetArrayLength{}
+		n.param, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x4032A55A4D21EEB6:
 		return &Node_DoesCreatureHaveLookAtTarget{}, nil
 	case 0x92A05E33F2D3B0B7:
@@ -12945,7 +13023,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x4DF5397C12DCA3EA:
 		return &Node_Arrow{}, nil
 	case 0xA0CED481D2A9D6EA:
-		return &Node_AsVector4{}, nil
+		n := &Node_AsVector4{}
+		n.param, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0xF6CF4842280431EC:
 		return &Node_GetFlawlessZeusAvailable{}, nil
 	case 0x9AB2DAEC074AD8EC:
@@ -13039,7 +13122,76 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x72DF2EFD1FD1D2FB:
 		return &Node_AsLootConditionSet{}, nil
 	case 0x63A1BB2AE5B8DFFB:
-		return &Node_Concussion{}, nil
+		n := &Node_Concussion{}
+		_, err := file.Seek(int64(offset+0x20), 0)
+		if err != nil {
+			return nil, err
+		}
+		err = binary.Read(file, binary.LittleEndian, &n.namespaceHash)
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Seek(int64(offset+0x30), 0)
+		if err != nil {
+			return nil, err
+		}
+		err = binary.Read(file, binary.LittleEndian, &n.nameHash)
+		if err != nil {
+			return nil, err
+		}
+		if n.namespaceHash == 0 && n.nameHash == 0 {
+			n.name = ""
+			n.namespace = ""
+			return n, nil
+		}
+		_, err = file.Seek(int64(offset+0x48), 0)
+		if err != nil {
+			return nil, err
+		}
+		strLength := uint32(0)
+		err = binary.Read(file, binary.LittleEndian, &strLength)
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Seek(int64(offset+0x58), 0)
+		if err != nil {
+			return nil, err
+		}
+		strData := make([]byte, strLength)
+		_, err = file.Read(strData)
+		if err != nil {
+			return nil, err
+		}
+		n.namespace = string(strData)
+		_, err = file.Seek(int64(offset+0x38), 0)
+		if err != nil {
+			return nil, err
+		}
+		nameOffset := uint32(0)
+		err = binary.Read(file, binary.LittleEndian, &nameOffset)
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Seek(int64(offset+0x38+nameOffset), 0)
+		if err != nil {
+			return nil, err
+		}
+		strLength = uint32(0)
+		err = binary.Read(file, binary.LittleEndian, &strLength)
+		if err != nil {
+			return nil, err
+		}
+		_, err = file.Seek(int64(offset+0x48+nameOffset), 0)
+		if err != nil {
+			return nil, err
+		}
+		strData = make([]byte, strLength)
+		_, err = file.Read(strData)
+		if err != nil {
+			return nil, err
+		}
+		n.name = string(strData)
+		return n, nil
 	case 0x630D325A8182DFFC:
 		return &Node_GetQuestPrimaryCompletionFact{}, nil
 	case 0x1057AC44F526E0FC:
@@ -13088,7 +13240,36 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x78E02FAFE4467D00:
 		return &Node_AddExcludeTraverseLinkFilterToCreature{}, nil
 	case 0xC96987A11B93A400:
-		return &Node_PlayCombatConcussion{}, nil
+		n := &Node_PlayCombatConcussion{}
+		n.params[0], err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x1a)
+		if err != nil {
+			return nil, err
+		}
+		n.params[2], err = ReadNode(file, stack, offset+0x1e)
+		if err != nil {
+			return nil, err
+		}
+		n.params[3], err = ReadNode(file, stack, offset+0x22)
+		if err != nil {
+			return nil, err
+		}
+		n.params[4], err = ReadNode(file, stack, offset+0x26)
+		if err != nil {
+			return nil, err
+		}
+		n.params[5], err = ReadNode(file, stack, offset+0x2a)
+		if err != nil {
+			return nil, err
+		}
+		n.params[6], err = ReadNode(file, stack, offset+0x2e)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0xDE783CC0462E3901:
 		return &Node_SetHapticInstanceParameter{}, nil
 	case 0x62B858BE1916AC01:
@@ -13198,7 +13379,33 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x569008FA65B19E15:
 		return &Node_SetVFSBool{}, nil
 	case 0x538FCED6126B4816:
-		return &Node_Switch{}, nil
+		n := &Node_Switch{}
+		n.param, err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		numParams := uint32(0)
+		_, err = file.Seek(int64(offset+0x20), 0)
+		if err != nil {
+			return nil, err
+		}
+		err = binary.Read(file, binary.LittleEndian, &numParams)
+		if err != nil {
+			return nil, err
+		}
+		n.cases = make([]Node, numParams)
+		n.caseValues = make([]Node, numParams)
+		for i := uint32(0); i < numParams; i++ {
+			n.cases[i], err = ReadNode(file, stack, offset+0x40+i*4)
+			if err != nil {
+				return nil, err
+			}
+			n.caseValues[i], err = ReadNode(file, stack, offset+0x40+(numParams+i)*4)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return n, nil
 	case 0x5C715BBAFD107416:
 		return &Node_DebugHighlightObject{}, nil
 	case 0xCC66989424F8A216:
@@ -13251,17 +13458,9 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 		return &Node_ActivateBoatNavCurveFunctionalityFunneling{}, nil
 	case 0x25DCB8EE9DF86C1E:
 		n := &Node_ClearVariable{}
-		_, err := file.Seek(int64(offset+0x10), 0)
+		variableOffset, err := ReadVariableOffset(file, int64(offset+0x10))
 		if err != nil {
 			return nil, err
-		}
-		variableOffset := int64(0)
-		err = binary.Read(file, binary.LittleEndian, &variableOffset)
-		if err != nil {
-			return nil, err
-		}
-		if variableOffset>>0x3e == 1 {
-			variableOffset = (variableOffset << 1) / 2
 		}
 		_, err = file.Seek(int64(offset+0x10)+variableOffset, 0)
 		if err != nil {
@@ -13524,7 +13723,31 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x301C88564F331841:
 		return &Node_DEBUG_ONLY_SetQuestStateAndBackpropagate{}, nil
 	case 0xE31E6CFA256BB13F:
-		return &Node_For{}, nil
+		if seen {
+			return &Node_Variable{str: "itr"}, nil
+		}
+		n := &Node_For{}
+		n.start, err = ReadNode(file, stack, offset+0x12)
+		if err != nil {
+			return nil, err
+		}
+		n.end, err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.increment, err = ReadNode(file, stack, offset+0x1a)
+		if err != nil {
+			return nil, err
+		}
+		n.operation, err = ReadNode(file, stack, offset+0x1e)
+		if err != nil {
+			return nil, err
+		}
+		n.next, err = ReadNode(file, stack, offset+0x26)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x943DEDD1D9244240:
 		return &Node_ModifyFocalZoneLockInEnabled{}, nil
 	case 0xB584358FD7A14840:
@@ -13937,21 +14160,13 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 			return nil, err
 		}
 		if numParam2 > 0 {
-			_, err = file.Seek(int64(offset+0x20), 0)
+			paramOffset, err := ReadVariableOffset(file, int64(offset+0x20))
 			if err != nil {
 				return nil, err
-			}
-			paramOffset := int64(0)
-			err = binary.Read(file, binary.LittleEndian, &paramOffset)
-			if err != nil {
-				return nil, err
-			}
-			if paramOffset>>0x3e == 1 {
-				paramOffset = (paramOffset << 1) / 2
 			}
 			n.params2 = make([]Node, numParam2)
 			for i := uint32(0); i < numParam2; i++ {
-				n.params2[i], err = ReadNode(file, stack, offset+0x20+i*4)
+				n.params2[i], err = ReadNode(file, stack, offset+0x20+uint32(paramOffset)+i*4)
 				if err != nil {
 					return nil, err
 				}
@@ -14337,7 +14552,23 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xE6890CA7D51AD5B1:
 		return &Node_SendLuaHook{}, nil
 	case 0xA42E1444D1908DAF:
-		return &Node_GetArrayElement{}, nil
+		if seen {
+			return &Node_Variable{"GetArrayElement_Out"}, nil
+		}
+		n := &Node_GetArrayElement{}
+		n.params[0], err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x1a)
+		if err != nil {
+			return nil, err
+		}
+		n.next, err = ReadNode(file, stack, offset+0x12)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x89BE5980598A09AD:
 		return &Node_RemoveCreatureFromCustomSplineGroup{}, nil
 	case 0xDB0944412F63BFAD:
@@ -14676,13 +14907,9 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		variableOffset := int64(0)
-		err = binary.Read(file, binary.LittleEndian, &variableOffset)
+		variableOffset, err := ReadVariableOffset(file, int64(offset+0x10))
 		if err != nil {
 			return nil, err
-		}
-		if variableOffset>>0x3e == 1 {
-			variableOffset = (variableOffset << 1) / 2
 		}
 		_, err = file.Seek(int64(offset+0x10)+variableOffset, 0)
 		if err != nil {
@@ -15343,21 +15570,18 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	return nil, fmt.Errorf("Unknown node type: %X", nodeId)
 }
 
-// func ReadNode(file *os.File, header *Node_Header, offset uint32) (Node, error) {
-// 	_, err := file.Seek(int64(offset), 0)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	nodeIndex := uint16(0)
-// 	err = binary.Read(file, binary.LittleEndian, &nodeIndex)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if nodeIndex == 0xFFFF {
-// 		return nil, nil
-// 	}
-// 	if index, ok := header.nodeMap[nodeIndex]; !ok {
-// 		header.nodeMap[nodeIndex] = uint32(len(header.nodeMap))
-// 	}
-// 	return ReadNode(file, stack, nodeOffsets[nodeIndex])
-// }
+func ReadVariableOffset(file *os.File, offset int64) (int64, error) {
+	_, err := file.Seek(offset, 0)
+	if err != nil {
+		return 0, err
+	}
+	variableOffset := int64(0)
+	err = binary.Read(file, binary.LittleEndian, &variableOffset)
+	if err != nil {
+		return 0, err
+	}
+	if variableOffset>>0x3e == 1 {
+		variableOffset = (variableOffset << 1) / 2
+	}
+	return variableOffset, nil
+}
