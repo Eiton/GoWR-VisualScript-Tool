@@ -1095,7 +1095,9 @@ type Node_IsPlayerInsideLeashZone struct{}
 type Node_GetNavCurveLength struct{}
 
 // 6E7476D289B8DC82
-type Node_AsGameObject struct{}
+type Node_AsGameObject struct {
+	param Node
+}
 
 // 3CD62D69A2EC7383
 type Node_Rumble struct{}
@@ -1807,7 +1809,9 @@ type Node_GetFloatFromBlackboard struct{}
 type Node_GetResourcesInWalletWithFlags struct{}
 
 // DC600FCEB385E1E6
-type Node_GetCreatureAttributeValue struct{}
+type Node_GetCreatureAttributeValue struct {
+	params [2]Node
+}
 
 // D88F5C7C1F760EE7
 type Node_Banter struct{}
@@ -3406,7 +3410,10 @@ type Node_Crank_SetComplete struct{}
 type Node_EvaluateLoadZones struct{}
 
 // E54443A46FED9B95
-type Node_TriggerMoveEvent struct{}
+type Node_TriggerMoveEvent struct {
+	params [2]Node
+	next   Node
+}
 
 // 8E7AFA908FD5E896
 type Node_DrawTextInWorld struct{}
@@ -3829,7 +3836,10 @@ type Node_StartMainMusicTrack struct{}
 type Node_SetPadLightColor struct{}
 
 // 17030A7A0E6462C4
-type Node_EmitArrow struct{}
+type Node_EmitArrow struct {
+	params [9]Node
+	next   Node
+}
 
 // 006615B249EA39C5
 type Node_RegisterForEventQueueProcessedEvent struct{}
@@ -4067,7 +4077,10 @@ type Node_SetCharacterConfig struct{}
 type Node_EnableBoatForceTurnAroundControlMode struct{}
 
 // 1E8B6A149CB61EE5
-type Node_FrameDelay struct{}
+type Node_FrameDelay struct {
+	param Node
+	next  Node
+}
 
 // DCAF72DFAA47ECE7
 type Node_SetInteractTagEnabled struct{}
@@ -4564,7 +4577,9 @@ type Node_OnTimerComplete struct {
 }
 
 // cb8641b853fbcd9c
-type Node_OnFrameDelay struct{}
+type Node_OnFrameDelay struct {
+	node Node
+}
 
 // 055359a614867cc6
 type Node_OnSpawnWildlifeComplete struct{}
@@ -6207,7 +6222,7 @@ func (n Node_GetNavCurveLength) To_String() string {
 }
 
 func (n Node_AsGameObject) To_String() string {
-	return "AsGameObject()"
+	return fmt.Sprintf("AsGameObject(%s)", n.param.To_String())
 }
 
 func (n Node_Rumble) To_String() string {
@@ -7117,7 +7132,7 @@ func (n Node_GetResourcesInWalletWithFlags) To_String() string {
 }
 
 func (n Node_GetCreatureAttributeValue) To_String() string {
-	return "GetCreatureAttributeValue()"
+	return fmt.Sprintf("GetCreatureAttributeValue(%s,%s)", n.params[0].To_String(), n.params[1].To_String())
 }
 
 func (n Node_Banter) To_String() string {
@@ -9216,7 +9231,7 @@ func (n Node_EvaluateLoadZones) To_String() string {
 }
 
 func (n Node_TriggerMoveEvent) To_String() string {
-	return "TriggerMoveEvent()"
+	return fmt.Sprintf("TriggerMoveEvent(%s,%s)", n.params[0].To_String(), n.params[1].To_String())
 }
 
 func (n Node_DrawTextInWorld) To_String() string {
@@ -9598,7 +9613,14 @@ func (n Node_ModifyFocalZone) To_String() string {
 }
 
 func (n Node_FunctionCall) To_String() string {
-	return "FunctionCall()"
+	out := ""
+	for i := 0; i < len(n.params2); i++ {
+		if i > 0 {
+			out += ","
+		}
+		out += n.params2[i].To_String()
+	}
+	return fmt.Sprintf("FunctionCall(%s,%s)", n.node.To_String(), out)
 }
 
 func (n Node_SuspendCreatureCulling) To_String() string {
@@ -10085,7 +10107,10 @@ func (n Node_EnableBoatForceTurnAroundControlMode) To_String() string {
 }
 
 func (n Node_FrameDelay) To_String() string {
-	return "FrameDelay()"
+	if n.next != nil {
+		return fmt.Sprintf("FrameDelay(%s);%s", n.param.To_String(), n.next.To_String())
+	}
+	return fmt.Sprintf("FrameDelay(%s)", n.param.To_String())
 }
 
 func (n Node_SetInteractTagEnabled) To_String() string {
@@ -10740,7 +10765,7 @@ func (n Node_OnTimerComplete) To_String() string {
 }
 
 func (n Node_OnFrameDelay) To_String() string {
-	return "OnFrameDelay()"
+	return fmt.Sprintf("function(){%s}", n.node.To_String())
 }
 
 func (n Node_OnSpawnWildlifeComplete) To_String() string {
@@ -11144,6 +11169,8 @@ func ReadNodeHead(file *os.File, offset uint32) (Node, error) {
 		fallthrough
 	case 0x8AAE018DF0E9C5B0:
 		fallthrough
+	case 0x1DE156F3288BFEB3:
+		fallthrough
 	case 0x02448C70A1903303:
 		n := &Node_Header{}
 		n.nodeMap = make(map[uint16]uint32, 0)
@@ -11315,6 +11342,9 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	// } else {
 	// 	seen = true
 	// }
+	if nodeIndex >= uint16(len(nodeOffsets)) {
+		return &Node_Dummy{}, nil
+	}
 	offset = nodeOffsets[nodeIndex]
 	_, err = file.Seek(int64(offset), 0)
 	if err != nil {
@@ -11351,6 +11381,8 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x8EB080F430E6BC3B:
 		fallthrough
 	case 0x8AAE018DF0E9C5B0:
+		fallthrough
+	case 0x1DE156F3288BFEB3:
 		fallthrough
 	case 0x02448C70A1903303:
 		//fmt.Println("Warning: Nested Header nodes")
@@ -12304,7 +12336,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x73252C8B0585B682:
 		return &Node_GetNavCurveLength{}, nil
 	case 0x6E7476D289B8DC82:
-		return &Node_AsGameObject{}, nil
+		n := &Node_AsGameObject{}
+		n.param, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x3CD62D69A2EC7383:
 		return &Node_Rumble{}, nil
 	case 0xA2153E07B938BF83:
@@ -12991,7 +13028,16 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xAA3CE495FE1BD8E6:
 		return &Node_GetResourcesInWalletWithFlags{}, nil
 	case 0xDC600FCEB385E1E6:
-		return &Node_GetCreatureAttributeValue{}, nil
+		n := &Node_GetCreatureAttributeValue{}
+		n.params[0], err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x14)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0xD88F5C7C1F760EE7:
 		return &Node_Banter{}, nil
 	case 0x4DDDF19C603A6AE8:
@@ -13269,6 +13315,7 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
+		n.next, err = ReadNode(file, stack, offset+0x12)
 		return n, nil
 	case 0xDE783CC0462E3901:
 		return &Node_SetHapticInstanceParameter{}, nil
@@ -14389,7 +14436,16 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xA70317F760F04E95:
 		return &Node_EvaluateLoadZones{}, nil
 	case 0xE54443A46FED9B95:
-		return &Node_TriggerMoveEvent{}, nil
+		n := &Node_TriggerMoveEvent{}
+		n.params[0], err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x1a)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x8E7AFA908FD5E896:
 		return &Node_DrawTextInWorld{}, nil
 	case 0xFCC8A7AE429DF597:
@@ -14661,28 +14717,30 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x72D321C22620FCB5:
 		return &Node_ModifyFocalZone{}, nil
 	case 0x800379829F5402B6:
-		return &Node_FunctionCall{}, nil
+		if seen {
+			return &Node_Variable{str: "functionCall"}, nil
+		}
 		n := &Node_FunctionCall{}
 		n.node, err = ReadNode(file, stack, offset+0x12)
 		if err != nil {
 			return nil, err
 		}
 		numParams := uint32(0)
-		_, err = file.Seek(int64(offset+0x20), 0)
-		if err != nil {
-			return nil, err
-		}
-		err = binary.Read(file, binary.LittleEndian, &numParams)
-		if err != nil {
-			return nil, err
-		}
-		n.params = make([]Node, numParams)
-		for i := uint32(0); i < numParams; i++ {
-			n.params[i], err = ReadNode(file, stack, offset+0x60+i*4)
-			if err != nil {
-				return nil, err
-			}
-		}
+		// _, err = file.Seek(int64(offset+0x20), 0)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// err = binary.Read(file, binary.LittleEndian, &numParams)
+		// if err != nil {
+		// 	return nil, err
+		// }
+		// n.params = make([]Node, numParams)
+		// for i := uint32(0); i < numParams; i++ {
+		// 	n.params[i], err = ReadNode(file, stack, offset+0x60+i*4)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// }
 		_, err = file.Seek(int64(offset+0x30), 0)
 		if err != nil {
 			return nil, err
@@ -14830,7 +14888,45 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0xD86A7DE7A38B3BC7:
 		return &Node_SetPadLightColor{}, nil
 	case 0x17030A7A0E6462C4:
-		return &Node_EmitArrow{}, nil
+		n := &Node_EmitArrow{}
+		n.params[0], err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.params[1], err = ReadNode(file, stack, offset+0x1a)
+		if err != nil {
+			return nil, err
+		}
+		n.params[2], err = ReadNode(file, stack, offset+0x20)
+		if err != nil {
+			return nil, err
+		}
+		n.params[3], err = ReadNode(file, stack, offset+0x38)
+		if err != nil {
+			return nil, err
+		}
+		n.params[4], err = ReadNode(file, stack, offset+0x3c)
+		if err != nil {
+			return nil, err
+		}
+		n.params[5], err = ReadNode(file, stack, offset+0x40)
+		if err != nil {
+			return nil, err
+		}
+		n.params[6], err = ReadNode(file, stack, offset+0x44)
+		if err != nil {
+			return nil, err
+		}
+		n.params[7], err = ReadNode(file, stack, offset+0x48)
+		if err != nil {
+			return nil, err
+		}
+		n.params[8], err = ReadNode(file, stack, offset+0x4c)
+		if err != nil {
+			return nil, err
+		}
+		n.next, err = ReadNode(file, stack, offset+0x12)
+		return n, nil
 	case 0x006615B249EA39C5:
 		return &Node_RegisterForEventQueueProcessedEvent{}, nil
 	case 0x0E669863732A85C6:
@@ -15022,7 +15118,16 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 	case 0x58E222C4EC3CFCE4:
 		return &Node_EnableBoatForceTurnAroundControlMode{}, nil
 	case 0x1E8B6A149CB61EE5:
-		return &Node_FrameDelay{}, nil
+		n := &Node_FrameDelay{}
+		n.param, err = ReadNode(file, stack, offset+0x16)
+		if err != nil {
+			return nil, err
+		}
+		n.next, err = ReadNode(file, stack, offset+0x12)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0xDCAF72DFAA47ECE7:
 		return &Node_SetInteractTagEnabled{}, nil
 	case 0xABF8484B8E2CE9E5:
@@ -15382,7 +15487,12 @@ func ReadNode(file *os.File, stack []uint16, offset uint32) (Node, error) {
 		}
 		return n, nil
 	case 0xcb8641b853fbcd9c:
-		return &Node_OnFrameDelay{}, nil
+		n := &Node_OnFrameDelay{}
+		n.node, err = ReadNode(file, stack, offset+0x10)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case 0x055359a614867cc6:
 		return &Node_OnSpawnWildlifeComplete{}, nil
 	case 0xa04a86f51c8e34c6:
